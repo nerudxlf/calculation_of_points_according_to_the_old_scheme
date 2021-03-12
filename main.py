@@ -2,6 +2,12 @@ import pandas as pd
 import re
 
 
+def rename_and_filter_df(data: object) -> object:
+    data.rename(
+        columns={"Source Title_x": "Source Title", "Title_x": "Title", "Affiliations_x": "Affiliations"}, inplace=True)
+    return data.filter(["Source Title", "Title", "Affiliations", "KEY"])
+
+
 def filter_data_wos(data: object) -> object:
     data = data.filter(["Full Journal Title", "Article Title", "Addresses"])
     data.rename(columns={"Full Journal Title": "Source Title", "Article Title": "Title", "Addresses": "Affiliations"},
@@ -27,22 +33,34 @@ def filter_data_scopus(data: object) -> object:
     return data
 
 
-def get_result(all_data: object, w_data: object, num, file_name, total):
+def get_result(all_data: object, w_data: object, num: int, file_name: str, total: int) -> (int, object):
     data_result = pd.merge(left=all_data, right=w_data, left_on="KEY", right_on="KEY")
-    data_result.rename(
-        columns={"Source Title_x": "Source Title", "Title_x": "Title", "Affiliations_x": "Affiliations"}, inplace=True)
-    data_result = data_result.filter(["Source Title", "Title", "Affiliations", "KEY"])
+    data_result = rename_and_filter_df(data_result)
     total += len(data_result.index) * num
     data_result.to_excel(file_name, index=False)
     all_data_minus = pd.concat([data_result, all_data])
     all_data_minus.drop_duplicates(keep=False, inplace=True)
-    print(f"w1 - {total} all len - {len(all_data_minus.index)}")
     return total, all_data_minus
+
+
+def get_result_50(all_data: object, w_data: object, s_data: object, num: int, file_name: str,
+                  total: int) -> (int, object):
+    data_result = pd.merge(left=all_data, right=w_data, left_on="KEY", right_on="KEY")
+    data_result = rename_and_filter_df(data_result)
+    total += len(data_result.index) * num
+    all_data_minus_w = pd.concat([data_result, all_data])
+    all_data_minus_w.drop_duplicates(keep=False, inplace=True)
+    w_and_s_data_result = pd.merge(left=all_data_minus_w, right=s_data, left_on="KEY", right_on="KEY")
+    w_and_s_data_result = rename_and_filter_df(w_and_s_data_result)
+    total += len(w_and_s_data_result.index) * num
+    w_and_s_data_result.to_excel(file_name, index=False)
+    all_data_minus_w_and_s = pd.concat([w_and_s_data_result, all_data_minus_w])
+    all_data_minus_w_and_s.drop_duplicates(keep=False, inplace=True)
+    return total, all_data_minus_w_and_s
 
 
 def main():
     total: int = 0
-
     s1_data = filter_data_scopus(pd.read_excel("s1.xlsx"))
     s2_data = filter_data_scopus(pd.read_excel("s2.xlsx"))
     s3_data = filter_data_scopus(pd.read_excel("s3.xlsx"))
@@ -57,46 +75,28 @@ def main():
     all_data = pd.concat(
         [s1_data, s2_data, s3_data, s4_data, s_none_data, w1_data, w2_data, w3_data, w4_data, w_none_data])
     all_data = all_data.drop_duplicates(subset=["KEY"])
-    # Получил 70.xlsx
+
     total, all_data = get_result(all_data, w1_data, 70, "70.xlsx", total)
-    # Получил 50.xlsx
-    w2_data_result = pd.merge(left=all_data, right=w2_data, left_on="KEY", right_on="KEY")
-    w2_data_result.rename(
-        columns={"Source Title_x": "Source Title", "Title_x": "Title", "Affiliations_x": "Affiliations"}, inplace=True)
-    w2_data_result = w2_data_result.filter(["Source Title", "Title", "Affiliations", "KEY"])
-    total += len(w2_data_result.index) * 50
-    all_data_minus_w2 = pd.concat([w2_data_result, all_data])
-    all_data_minus_w2.drop_duplicates(keep=False, inplace=True)
-    # Добавил в 50.xlsx Scopus
-    w2_and_s1_data_result = pd.merge(left=all_data_minus_w2, right=s1_data, left_on="KEY", right_on="KEY")
-    w2_and_s1_data_result.rename(
-        columns={"Source Title_x": "Source Title", "Title_x": "Title", "Affiliations_x": "Affiliations"}, inplace=True)
-    w2_and_s1_data_result = w2_and_s1_data_result.filter(["Source Title", "Title", "Affiliations", "KEY"])
-    total += len(w2_and_s1_data_result.index) * 50
-    w2_and_s1_data_to_excel = all_data.drop_duplicates()
-    w2_and_s1_data_to_excel.to_excel("50.xlsx", index=False)
-    # Удалил из All 50.xlsx
-    all_data_minus_w2_and_s1 = pd.concat([w2_and_s1_data_result, all_data_minus_w2])
-    all_data_minus_w2_and_s1.drop_duplicates(keep=False, inplace=True)
-    print(f"w2 and s1 - {total} all len - {len(all_data_minus_w2_and_s1.index)}")
-    all_data = all_data_minus_w2_and_s1
+    print(f"w1 - {total} all len - {len(all_data.index)}")
 
-    # Получил 30.xlsx
+    total, all_data = get_result_50(all_data, w2_data, s1_data, 50, "50.xlsx", total)
+    print(f"w2 and s1 - {total} all len - {len(all_data.index)}")
+
     total, all_data = get_result(all_data, s2_data, 30, "30.xlsx", total)
+    print(f"s2 - {total} all len - {len(all_data.index)}")
 
-    # Получил 25.xlsx
     total, all_data = get_result(all_data, w3_data, 25, "25.xlsx", total)
+    print(f"w3 - {total} all len - {len(all_data.index)}")
 
-    # Получил 18.xlsx
     total, all_data = get_result(all_data, w4_data, 18, "18.xlsx", total)
+    print(f"w4 - {total} all len - {len(all_data.index)}")
 
-    # Получил 15.xlsx
     total, all_data = get_result(all_data, s3_data, 15, "15.xlsx", total)
+    print(f"s3 - {total} all len - {len(all_data.index)}")
 
-    # Получил 9.xlsx
     total, all_data = get_result(all_data, s4_data, 9, "9.xlsx", total)
+    print(f"s4 - {total} all len - {len(all_data.index)}")
 
-    # Получил 7.xlsx
     all_data_minus_s4 = all_data.drop_duplicates(subset=["KEY"])
     total += len(all_data_minus_s4.index) * 7
     print(f"all - {total} all len - {len(all_data_minus_s4.index)}")
