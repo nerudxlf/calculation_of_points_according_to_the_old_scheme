@@ -34,6 +34,12 @@ total = total + W3.count * 25*
 7. *Создать 18.xls по совпадениями "Title" в таблице All и W4, удалить из All все строки с совпадениями по W4
 total = total + W4.count * 18*
 
+Ссылкы на проекты с получением квартилей
+
+Из Scopus: https://github.com/nerudxlf/get_affilietions_and_names_from_scopus
+
+Из WoS: https://github.com/nerudxlf/getting_quartiles_wos
+
 8. *Создать 15.xls по совпадениями "Title" в таблице All и S3, удалить из All все строки с совпадениями по S3
 total = total + S3.count * 15*
 
