@@ -39,7 +39,7 @@ def get_result(all_data: object, w_data: object, num: int, file_name: str, total
     total += len(data_result.index) * num
     data_result.to_excel(file_name, index=False)
     all_data_minus = pd.concat([data_result, all_data])
-    all_data_minus.drop_duplicates(keep=False, inplace=True)
+    all_data_minus.drop_duplicates(keep=False, inplace=True, subset=["KEY"])
     return total, all_data_minus
 
 
@@ -48,14 +48,15 @@ def get_result_50(all_data: object, w_data: object, s_data: object, num: int, fi
     data_result = pd.merge(left=all_data, right=w_data, left_on="KEY", right_on="KEY")
     data_result = rename_and_filter_df(data_result)
     total += len(data_result.index) * num
+    data_result.to_excel("w"+file_name, index=False)
     all_data_minus_w = pd.concat([data_result, all_data])
-    all_data_minus_w.drop_duplicates(keep=False, inplace=True)
+    all_data_minus_w.drop_duplicates(keep=False, inplace=True, subset=["KEY"])
     w_and_s_data_result = pd.merge(left=all_data_minus_w, right=s_data, left_on="KEY", right_on="KEY")
     w_and_s_data_result = rename_and_filter_df(w_and_s_data_result)
     total += len(w_and_s_data_result.index) * num
-    w_and_s_data_result.to_excel(file_name, index=False)
+    w_and_s_data_result.to_excel("s"+file_name, index=False)
     all_data_minus_w_and_s = pd.concat([w_and_s_data_result, all_data_minus_w])
-    all_data_minus_w_and_s.drop_duplicates(keep=False, inplace=True)
+    all_data_minus_w_and_s.drop_duplicates(keep=False, inplace=True, subset=["KEY"])
     return total, all_data_minus_w_and_s
 
 
@@ -74,8 +75,9 @@ def main():
 
     all_data = pd.concat(
         [s1_data, s2_data, s3_data, s4_data, s_none_data, w1_data, w2_data, w3_data, w4_data, w_none_data])
+    
     all_data = all_data.drop_duplicates(subset=["KEY"])
-
+    print(f"all len {len(all_data.index)}")
     total, all_data = get_result(all_data, w1_data, 70, "70.xlsx", total)
     print(f"w1 - {total} all len - {len(all_data.index)}")
 
