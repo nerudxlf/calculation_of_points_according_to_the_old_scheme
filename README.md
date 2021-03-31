@@ -46,6 +46,6 @@ total = total + All.count * 7*
 
 Ссылки на проекты по разбиению публикаций по квартилям WoS(w1.xlsx, w2.xlsx, w3.xlsx, w4.xlsx, w_none.xlsx) и Scopus(s1.xlsx, s2.xlsx, s3.xlsx, s4.xlsx, s_none.xlsx)
 
-Из Scopus: https://github.com/nerudxlf/get_affilietions_and_names_from_scopus
+Из Scopus: https://github.com/nerudxlf/getting_quartiles_scopus
 
 Из WoS: https://github.com/nerudxlf/getting_quartiles_wos
